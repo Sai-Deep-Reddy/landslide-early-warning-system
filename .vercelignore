@@ -1,0 +1,16 @@
+/data/
+/slide_assets/
+/tests/
+/docs/
+backend/app/data/dem/raw/
+backend/app/data/cache/
+*.zip
+*.pdf
+*.hgt
+*.bak
+build_sih_presentation.py
+export_presentation.py
+generate_slide_graphics.py
+inspect_template.py
+patch_html.py
+check.py

@@ -1,21 +1,17 @@
-﻿{
+{
   "version": 2,
   "rewrites": [
     {
-      "source": "/static/(.*)",
-      "destination": "/backend/app/static/$1"
-    },
-    {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/index.py?path=$1"
     },
     {
-      "source": "/",
-      "destination": "/backend/app/static/index.html"
+      "source": "/docs",
+      "destination": "/api/index.py?path=docs"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index"
+      "source": "/openapi.json",
+      "destination": "/api/index.py?path=openapi.json"
     }
   ]
 }
