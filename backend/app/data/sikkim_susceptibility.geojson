@@ -1,0 +1,335 @@
+{
+  "type": "FeatureCollection",
+  "name": "GSI_NLSM_Sikkim_Susceptibility_Zones",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-MGN-01",
+        "name": "Chungthang-Lachen-Lachung Escarpment Corridor",
+        "district": "Mangan",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 43.5,
+        "elevation_range_m": "1700-3200",
+        "critical_corridor": "North Sikkim Highway (NH-310A / BRO Swastik)",
+        "lithology": "High-Grade Gneisses & Schists (Darjeeling Gneiss Group)",
+        "geomorphology": "Very steep glacio-fluvial scarp with chronic rockfall & debris flows",
+        "area_sq_km": 142.6,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.52, 27.56],
+            [88.66, 27.68],
+            [88.75, 27.65],
+            [88.72, 27.52],
+            [88.58, 27.50],
+            [88.52, 27.56]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-MGN-02",
+        "name": "Dikchu-Mangan-Singhik Steep Slope Belt",
+        "district": "Mangan",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 39.2,
+        "elevation_range_m": "850-2100",
+        "critical_corridor": "Dikchu-Mangan State Highway",
+        "lithology": "Phyllites, Quartzites & Weathered Schists (Daling Group)",
+        "geomorphology": "Steep structural hillside with high pore-pressure response",
+        "area_sq_km": 98.4,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.45, 27.38],
+            [88.55, 27.42],
+            [88.58, 27.53],
+            [88.48, 27.55],
+            [88.40, 27.46],
+            [88.45, 27.38]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-GTK-01",
+        "name": "NH-10 Gangtok-Ranipool Capital Urban Corridor",
+        "district": "Gangtok",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 35.8,
+        "elevation_range_m": "1200-1900",
+        "critical_corridor": "National Highway 10 (Sikkim Lifeline)",
+        "lithology": "Daling Phyllite & Mica-Schist with thick overburden soil",
+        "geomorphology": "Dense urban hillside cut-slopes with active runoff accumulation",
+        "area_sq_km": 64.2,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.56, 27.28],
+            [88.64, 27.30],
+            [88.66, 27.37],
+            [88.58, 27.36],
+            [88.54, 27.31],
+            [88.56, 27.28]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-GTK-02",
+        "name": "Singtam-Sirwani Teesta Basin Terrace",
+        "district": "Gangtok",
+        "susceptibility_class": "Moderate",
+        "susceptibility_score": 0.5,
+        "mean_slope_deg": 28.5,
+        "elevation_range_m": "350-1100",
+        "critical_corridor": "Teesta River Fluvial Bank & Sirwani Link",
+        "lithology": "Quaternary Alluvial Gravels over Daling Slates",
+        "geomorphology": "Fluvial river terrace susceptible to toe erosion during flood discharge",
+        "area_sq_km": 42.8,
+        "color": "#f59e0b"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.46, 27.20],
+            [88.54, 27.22],
+            [88.55, 27.27],
+            [88.48, 27.26],
+            [88.46, 27.20]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-GYL-01",
+        "name": "Pelling-Gyalshing-Dentam Mountain Range",
+        "district": "Gyalshing",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 38.4,
+        "elevation_range_m": "1400-2400",
+        "critical_corridor": "Gyalshing-Pelling State Highway & West Tourism Arteries",
+        "lithology": "Buxa Quartzite, Schists & Weathered Dolomite",
+        "geomorphology": "Steep ridge escarpment with historical rotational slumps",
+        "area_sq_km": 112.5,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.16, 27.24],
+            [88.28, 27.26],
+            [88.30, 27.36],
+            [88.20, 27.38],
+            [88.12, 27.30],
+            [88.16, 27.24]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-GYL-02",
+        "name": "Legship-Tashiding Rangit Basin",
+        "district": "Gyalshing",
+        "susceptibility_class": "Moderate",
+        "susceptibility_score": 0.5,
+        "mean_slope_deg": 29.8,
+        "elevation_range_m": "500-1450",
+        "critical_corridor": "Legship-Gyalshing Hydro Route",
+        "lithology": "Gondwana Sandstones & Carbonaceous Shales",
+        "geomorphology": "Moderate valley slopes prone to toe scouring along Rangit river",
+        "area_sq_km": 56.1,
+        "color": "#f59e0b"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.24, 27.26],
+            [88.32, 27.27],
+            [88.35, 27.33],
+            [88.28, 27.34],
+            [88.24, 27.26]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-PKY-01",
+        "name": "Pakyong Airport Escarpment & Greenfield Slope",
+        "district": "Pakyong",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 37.1,
+        "elevation_range_m": "1100-1750",
+        "critical_corridor": "Pakyong Airport Approach Road & Link Highway",
+        "lithology": "Reinforced Earth Slopes over Daling Metasediments",
+        "geomorphology": "High-gradient engineered slope cuts with chronic monsoon tension cracks",
+        "area_sq_km": 48.7,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.56, 27.20],
+            [88.65, 27.22],
+            [88.66, 27.28],
+            [88.58, 27.27],
+            [88.56, 27.20]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-PKY-02",
+        "name": "Rangpo Border Valley & South Gateway",
+        "district": "Pakyong",
+        "susceptibility_class": "Low",
+        "susceptibility_score": 0.1,
+        "mean_slope_deg": 18.2,
+        "elevation_range_m": "300-650",
+        "critical_corridor": "Rangpo Inter-State Border Checkpost",
+        "lithology": "Broad Valley Alluvium & Low-Dip Sedimentary Beds",
+        "geomorphology": "Stable wide valley floor with high drainage discharge capacity",
+        "area_sq_km": 38.9,
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.48, 27.15],
+            [88.58, 27.16],
+            [88.57, 27.20],
+            [88.50, 27.19],
+            [88.48, 27.15]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-NMC-01",
+        "name": "Ravangla High Ridge & Maenam Hillside",
+        "district": "Namchi",
+        "susceptibility_class": "High",
+        "susceptibility_score": 1.0,
+        "mean_slope_deg": 36.4,
+        "elevation_range_m": "1800-2600",
+        "critical_corridor": "Tarku-Ravangla-Legship Road",
+        "lithology": "Mica Schist & Gneissic Regolith with high weathering depth",
+        "geomorphology": "Cloudburst-prone ridge with saturated regolith debris mantle",
+        "area_sq_km": 72.3,
+        "color": "#ef4444"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.32, 27.28],
+            [88.42, 27.29],
+            [88.44, 27.35],
+            [88.34, 27.34],
+            [88.32, 27.28]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-NMC-02",
+        "name": "Namchi-Jorethang Terraced Basin",
+        "district": "Namchi",
+        "susceptibility_class": "Moderate",
+        "susceptibility_score": 0.5,
+        "mean_slope_deg": 27.6,
+        "elevation_range_m": "400-1400",
+        "critical_corridor": "Namchi-Jorethang Major District Road",
+        "lithology": "Daling Phyllites with terraced agricultural stabilization",
+        "geomorphology": "Cultivated slopes with moderate runoff retention and drainage channels",
+        "area_sq_km": 88.0,
+        "color": "#f59e0b"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.28, 27.12],
+            [88.38, 27.13],
+            [88.42, 27.22],
+            [88.30, 27.20],
+            [88.28, 27.12]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zone_id": "NLSM-SK-SRG-01",
+        "name": "Soreng-Kaluk Valley Escarpment",
+        "district": "Soreng",
+        "susceptibility_class": "Moderate",
+        "susceptibility_score": 0.5,
+        "mean_slope_deg": 31.0,
+        "elevation_range_m": "1100-1850",
+        "critical_corridor": "Soreng-Kaluk-Rinchenpong Scenic Corridor",
+        "lithology": "Quartzitic Schists & Slates",
+        "geomorphology": "Moderate-to-steep valley slopes with localized road-cut destabilization",
+        "area_sq_km": 68.4,
+        "color": "#f59e0b"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.14, 27.14],
+            [88.24, 27.15],
+            [88.25, 27.24],
+            [88.16, 27.23],
+            [88.14, 27.14]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "source": "USGS/NASA Shuttle Radar Topography Mission (SRTM)",
+  "dataset": "SRTM 1 Arc-Second Global (SRTMGL1 v003)",
+  "resolution": "1 arc-second (~30 meters)",
+  "tile_names": [
+    "N27E088",
+    "N28E088"
+  ],
+  "download_date": "2026-08-31 13:25:11 UTC",
+  "source_urls": [
+    "https://earthexplorer.usgs.gov/",
+    "https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/",
+    "https://step.esa.int/auxdata/dem/SRTMGL1/"
+  ],
+  "spatial_coverage": {
+    "min_lat": 27.0,
+    "max_lat": 29.0,
+    "min_lon": 88.0,
+    "max_lon": 89.0
+  },
+  "coordinate_reference_system": "EPSG:4326 (WGS 84)",
+  "vertical_datum": "EGM96 (Earth Gravitational Model 1996)",
+  "grid_dimensions_per_tile": "3601 x 3601 pixels",
+  "raw_files": [
+    "N27E088.hgt",
+    "N27E088.SRTMGL1.hgt.zip",
+    "N28E088.hgt",
+    "N28E088.SRTMGL1.hgt.zip"
+  ]
+}

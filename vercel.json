@@ -1,0 +1,21 @@
+﻿{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/static/(.*)",
+      "destination": "/backend/app/static/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/",
+      "destination": "/backend/app/static/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
+}

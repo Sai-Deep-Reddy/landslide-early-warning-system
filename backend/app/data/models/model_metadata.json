@@ -1,0 +1,23 @@
+{
+  "model_version": "XGB-v3.0-ERA5-PRODUCTION",
+  "trained_at": "2026-08-30T19:28:29.951563+00:00",
+  "training_period": "2018-04-08 to 2023-10-31",
+  "test_period": "2024-04-01 to 2024-09-28 (Chronological Holdout)",
+  "features": [
+    "rain_6h",
+    "rain_24h",
+    "rain_48h",
+    "rain_7d",
+    "soil_0_10cm",
+    "soil_10_40cm",
+    "soil_27_81cm",
+    "slope_deg",
+    "elevation_m",
+    "suscep_factor"
+  ],
+  "train_samples_count": 382,
+  "test_samples_count": 83,
+  "dataset_source": "GSI National Landslide Forecasting Centre (NLFC) / Bhu Sanket & Bharatlas Open Landslide Archive",
+  "scale_pos_weight": 1.94,
+  "calibrated_threshold": 0.5
+}
