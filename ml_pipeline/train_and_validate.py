@@ -269,8 +269,7 @@ def run_training_pipeline():
             "f1_score_pct": round(float(f1_xgb * 100), 1),
             "roc_auc": round(float(auc_xgb), 3),
             "pr_auc": round(float(pr_auc_xgb), 3),
-            "false_alarm_rate_pct": round(float(far_xgb * 100), 1),
-            "median_warning_lead_time_hours": 3.4
+            "false_alarm_rate_pct": round(float(far_xgb * 100), 1)
         },
         "confusion_matrix": {
             "tp": int(tp_x),

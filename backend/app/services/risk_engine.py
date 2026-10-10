@@ -24,6 +24,7 @@ from app.config import (
 )
 from app.services.terrain_service import terrain_service
 from app.services.weather_service import weather_service
+from app.services.physics_engine import physics_assessment
 
 logger = logging.getLogger("lews.risk_engine")
 
@@ -254,27 +255,38 @@ class RiskEngine:
         rain_boost_pct: float,
         is_manual_mode: bool
     ) -> Dict[str, Any]:
-        # Step 3: Transparent GSI Empirical Physical Rule & Thresholds
-        # GSI I-D Power Law: I = 43.26 * D^(-0.78) -> 24h threshold = 43.26mm; 48h critical = 36.7mm
-        norm_rain_24h = min(2.0, rain_24h / 65.0)
-        norm_rain_48h = min(2.0, rain_48h / 100.0)
-        norm_slope = min(2.0, slope / 32.0)
+        # Step 3: Transparent Physics-Informed Stability & I-D Threshold Engine
+        # Harilal et al. (2019) Regional I-D Power Law: I = 43.26 * D^(-0.78)
+        # Infinite-Slope Limit-Equilibrium Factor of Safety (FoS) with Monte Carlo strength uncertainty
+        daily_rain_series = [
+            max(0.0, (rain_7d - rain_48h) / 5.0),
+            max(0.0, (rain_7d - rain_48h) / 5.0),
+            max(0.0, (rain_7d - rain_48h) / 5.0),
+            max(0.0, (rain_7d - rain_48h) / 5.0),
+            max(0.0, (rain_7d - rain_48h) / 5.0),
+            max(0.0, rain_48h - rain_24h),
+            max(0.0, rain_24h)
+        ]
+        soil_avg = (soil_0_10 * 7.0 + soil_10_40 * 21.0) / 28.0
+        phys = physics_assessment(slope_deg=slope, daily_rain_mm=daily_rain_series, soil_moisture=soil_avg)
+        p_failure_phys = phys["slope_stability"]["p_failure"]
+        id_ratio = phys["id_threshold"]["ratio"]
+
+        if slope <= 5.0:
+            hazard_index = 0.05
+            gsi_threshold_breached = False
+        else:
+            gsi_threshold_breached = bool(phys["threshold_breached"] and slope >= 15.0)
+            norm_slope = min(2.0, slope / 35.0)
+            raw_rule_score = (0.50 * p_failure_phys + 0.30 * min(1.5, id_ratio) + 0.10 * norm_slope + 0.10 * suscep_factor)
+            if gsi_threshold_breached and slope >= 22.0:
+                raw_rule_score = max(raw_rule_score, 0.70)
+            hazard_index = round(float(np.clip(raw_rule_score, 0.05, 0.99)), 2)
+
+        norm_rain_24h = min(2.0, rain_24h / 43.26)
+        norm_rain_48h = min(2.0, rain_48h / 50.4)
+        norm_slope = min(2.0, slope / 35.0)
         norm_soil = min(2.0, soil_0_10 / 0.38)
-
-        raw_rule_score = (
-            0.35 * norm_rain_24h
-            + 0.20 * norm_rain_48h
-            + 0.20 * norm_slope
-            + 0.15 * norm_soil
-            + 0.10 * suscep_factor
-        )
-
-        gsi_threshold_breached = False
-        if (rain_24h >= 43.3 and slope >= 30.0) or (rain_48h >= 36.7 and slope >= 34.0):
-            gsi_threshold_breached = True
-            raw_rule_score = max(raw_rule_score, 0.70)
-
-        hazard_index = round(max(0.05, min(0.99, raw_rule_score)), 2)
 
         # Step 4: Genuine Machine Learning Inference (XGBoost Classifier)
         feature_vector_list = [
@@ -312,13 +324,17 @@ class RiskEngine:
             ml_prob = round(1.0 / (1.0 + np.exp(-3.5 * (hazard_index - 0.5))), 3)
             model_name = "Calibrated Sigmoid Heuristic"
 
+        if slope <= 5.0:
+            ml_prob = min(ml_prob, 0.15)
+
         # Step 5: Fused Alert Decision Engine
         # Continuous weighted fusion: 55% ML Probability + 45% Physics Hazard Index
         compound_risk = round(0.55 * ml_prob + 0.45 * hazard_index, 3)
 
-        # Documented Physical Emergency Override:
-        # GSI Intensity-Duration power-law threshold (I >= 43.26 * D^-0.78, 48h >= 36.7mm on steep slopes >= 30 deg)
-        if gsi_threshold_breached:
+        # Flat valley floor protection: slope <= 5 degrees cannot initiate debris failure
+        if slope <= 5.0:
+            compound_risk = min(compound_risk, 0.15)
+        elif gsi_threshold_breached and slope >= 22.0:
             compound_risk = max(compound_risk, 0.68)
 
         # Validated Risk Classification Bands (Evaluated against 2024 holdout dataset)
@@ -379,14 +395,14 @@ class RiskEngine:
                 "ml_probability_pct": round(ml_prob * 100, 1)
             },
             "physics_hazard_index": {
-                "formula": "0.30*(R24/50) + 0.15*(R48/80) + 0.15*(R7d/180) + 0.20*(Slope/35) + 0.10*(Soil/0.38) + 0.10*Suscep",
+                "formula": "0.50 * P(FoS < 1) + 0.30 * min(1.5, I-D Ratio) + 0.10 * (Slope/35) + 0.10 * Suscep",
                 "components": {
-                    "rain_24h_term": round(0.30 * min(2.0, rain_24h / 50.0), 3),
-                    "rain_48h_term": round(0.15 * min(2.0, rain_48h / 80.0), 3),
-                    "rain_7d_term": round(0.15 * min(2.0, rain_7d / 180.0), 3),
-                    "slope_term": round(0.20 * min(2.0, slope / 35.0), 3),
-                    "soil_term": round(0.10 * min(2.0, soil_0_10 / 0.38), 3),
-                    "susceptibility_term": round(0.10 * suscep_factor, 3)
+                    "p_failure_fos": round(p_failure_phys, 3),
+                    "fos_median": round(phys["slope_stability"]["fos_median"], 3),
+                    "id_ratio": round(id_ratio, 3),
+                    "id_threshold_mm_day": phys["id_threshold"]["threshold_mm_per_day"],
+                    "observed_rain_mm_day": phys["id_threshold"]["observed_mm_per_day"],
+                    "equation": "Harilal et al. (2019) Landslides 16: I = 43.26 * D^-0.78"
                 },
                 "gsi_id_power_law_breached": gsi_threshold_breached,
                 "resulting_score": hazard_index

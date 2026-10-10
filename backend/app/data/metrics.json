@@ -1,7 +1,7 @@
 {
-  "status": "validated_empirical",
+  "status": "pipeline_scaffold_synthetic",
   "model_version": "XGBoost-v3.0",
-  "dataset_version": "v3.0-ERA5-VALIDATED",
+  "dataset_version": "v3.0-DEMO-SCAFFOLD",
   "train_period": "2018-2023",
   "test_period": "2024 Holdout Season",
   "total_test_samples": 83,
@@ -11,8 +11,7 @@
     "f1_score_pct": 60.3,
     "roc_auc": 0.765,
     "pr_auc": 0.599,
-    "false_alarm_rate_pct": 50.0,
-    "median_warning_lead_time_hours": 3.4
+    "false_alarm_rate_pct": 50.0
   },
   "confusion_matrix": {
     "tp": 19,

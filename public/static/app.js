@@ -321,7 +321,7 @@ function renderHistoricalLandslides(events) {
     const marker = L.marker([ev.lat, ev.lon], { icon: customIcon });
     marker.bindPopup(`
       <div style="font-family:sans-serif; min-width:210px; color:#111;">
-        <div style="font-size:10px; font-weight:700; color:#dc2626; text-transform:uppercase;">GSI Field-Validated Record (${ev.year || ''})</div>
+        <div style="font-size:10px; font-weight:700; color:#dc2626; text-transform:uppercase;">Historical Demo Record (${ev.year || ''})</div>
         <h4 style="margin:2px 0 6px; font-size:13px;">${ev.location_name}</h4>
         <div style="font-size:11px; margin-bottom:2px;">Date: <strong>${ev.event_date}</strong></div>
         <div style="font-size:11px; margin-bottom:2px;">Type: <strong>${ev.type}</strong></div>

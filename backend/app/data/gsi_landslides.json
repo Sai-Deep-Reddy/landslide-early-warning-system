@@ -1,8 +1,9 @@
 {
   "metadata": {
-    "source": "GSI National Landslide Forecasting Centre (NLFC) / Bhu Sanket & Bharatlas Open Landslide Archive",
-    "dataset_version": "v3.0-ERA5-VALIDATED",
+    "source": "SYNTHETIC PLACEHOLDER - see README",
+    "dataset_version": "v3.0-DEMO-PLACEHOLDER",
     "retrieved_at": "2026-08-31T00:00:00Z",
+    "status": "Synthetic dataset used for pipeline scaffolding; in progress replacing with cited NASA COOLR and SDMA records",
     "region": "Sikkim & Eastern Himalayas",
     "spatial_bbox": {
       "min_lat": 27.05,
@@ -11,8 +12,7 @@
       "max_lon": 88.95
     },
     "temporal_coverage": "2018-04-08 to 2024-09-28",
-    "license": "Government Open Data License - India (GODL) / CC-BY-4.0",
-    "validated_events_count": 155,
+    "events_count": 155,
     "environmental_reanalysis": "ECMWF ERA5-Land Hourly Archive (via Open-Meteo API)"
   },
   "records": [

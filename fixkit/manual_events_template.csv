@@ -1,0 +1,2 @@
+event_id,event_date,event_time,lat,lon,location_accuracy,trigger,place,fatalities,source_url,citation,notes
+MAN-0001,2024-06-13,,27.5042,88.5284,town (~5 km),rain,"Mangan district, North Sikkim (Pakshep / Ambhithang villages)",6,https://www.business-standard.com/india-news/heavy-rain-landslides-kill-6-in-indias-sikkim-2000-tourists-stranded-124061400418_1.html,Reuters via Business Standard 14-Jun-2024,"EXAMPLE ROW - confirm exact date + village coordinates from Sikkim SDMA sitrep / GSI PDLS before training"

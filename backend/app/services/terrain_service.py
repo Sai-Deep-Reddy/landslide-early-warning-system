@@ -20,7 +20,29 @@ from app.config import PILOT_STATIONS, SIKKIM_BBOX, DATA_DIR
 logger = logging.getLogger("lews.terrain_service")
 
 PROCESSED_DEM_PATH = os.path.join(DATA_DIR, "dem", "processed", "sikkim_dem_srtm_30m.tif")
+PROCESSED_DEM_NPZ = os.path.join(DATA_DIR, "dem", "terrain_sikkim.npz")
 SUSCEPTIBILITY_GEOJSON_PATH = os.path.join(DATA_DIR, "sikkim_susceptibility.geojson")
+
+
+class NpzTerrain:
+    """Fast, dependency-free raster lookup using precomputed compressed numpy arrays."""
+    def __init__(self, path: str):
+        d = np.load(path)
+        self.elev, self.slope = d["elev"], d["slope"]
+        self.left, self.top, self.res = float(d["left"]), float(d["top"]), float(d["res"])
+
+    def lookup(self, lat: float, lon: float) -> Optional[Dict[str, Any]]:
+        r = int((self.top - lat) / self.res)
+        c = int((lon - self.left) / self.res)
+        if not (0 <= r < self.elev.shape[0] and 0 <= c < self.elev.shape[1]):
+            return None  # outside regional coverage
+        if self.elev[r, c] == -32768 or self.slope[r, c] == 255:
+            return None
+        return {
+            "elevation_m": float(self.elev[r, c]),
+            "slope_deg": float(self.slope[r, c]),
+            "dem_source": "USGS/NASA SRTM 1 Arc-Second Global (30m GeoTIFF)"
+        }
 
 
 class TerrainService:
@@ -33,9 +55,21 @@ class TerrainService:
         self._transform = None
         self._bounds = None
         self._nodata = None
+        self._npz_terrain = None
         self._susceptibility_geojson = None
+        self._load_npz_terrain()
         self._load_srtm_geotiff()
         self._load_susceptibility_geojson()
+
+    def _load_npz_terrain(self):
+        """Loads precomputed numpy terrain if available for serverless deployments."""
+        if os.path.exists(PROCESSED_DEM_NPZ):
+            try:
+                self._npz_terrain = NpzTerrain(PROCESSED_DEM_NPZ)
+                logger.info(f"Loaded precomputed NPZ terrain from {PROCESSED_DEM_NPZ}")
+            except Exception as e:
+                logger.error(f"Failed to load NPZ terrain: {e}")
+                self._npz_terrain = None
 
     def _load_srtm_geotiff(self):
         """Loads the genuine USGS/NASA SRTM 1 Arc-Second (30m) GeoTIFF."""
@@ -56,7 +90,6 @@ class TerrainService:
                 logger.error(f"Failed to open SRTM GeoTIFF at {PROCESSED_DEM_PATH}: {e}")
                 self._dem_loaded = False
         else:
-            logger.warning(f"SRTM GeoTIFF not found at {PROCESSED_DEM_PATH}")
             self._dem_loaded = False
 
     def _load_susceptibility_geojson(self):
@@ -119,7 +152,19 @@ class TerrainService:
         """
         closest = self.get_closest_station(lat, lon)
 
-        if self._dem_loaded and self._dem_raster is not None and self._dem_dataset is not None:
+        if self._npz_terrain is not None:
+            npz_res = self._npz_terrain.lookup(lat, lon)
+            if npz_res is not None:
+                elev = npz_res["elevation_m"]
+                slope = npz_res["slope_deg"]
+                aspect = 180.0
+                dem_source = npz_res["dem_source"]
+            else:
+                elev = float(closest["elevation_m"])
+                slope = float(closest["slope_deg"])
+                aspect = 180.0
+                dem_source = "Outside SRTM Regional Coverage (Station Baseline)"
+        elif self._dem_loaded and self._dem_raster is not None and self._dem_dataset is not None:
             try:
                 row, col = self._dem_dataset.index(lon, lat)
                 nrows, ncols = self._dem_raster.shape
@@ -150,7 +195,6 @@ class TerrainService:
                 z_br = float(self._dem_raster[r_next, c_next])
 
                 # Cell resolution in meters at latitude (WGS84 ellipsoid conversion)
-                # 1 arc-second ~ 30.87m in Y, ~ 30.87m * cos(lat) in X
                 dy = (1.0 / 3600.0) * 111132.95
                 dx = (1.0 / 3600.0) * 111412.84 * math.cos(math.radians(lat))
                 dx = max(10.0, dx)
@@ -164,7 +208,6 @@ class TerrainService:
                 slope = max(0.0, min(85.0, slope))
 
                 aspect = (math.degrees(math.atan2(dz_dy, -dz_dx)) + 360.0) % 360.0
-
                 dem_source = "USGS/NASA SRTM 1 Arc-Second Global (30m GeoTIFF)"
             except Exception as e:
                 logger.error(f"Error computing terrain metrics from SRTM GeoTIFF: {e}")
