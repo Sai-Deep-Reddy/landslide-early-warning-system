@@ -93,7 +93,12 @@ class TerrainService:
             self._dem_loaded = False
 
     def _load_susceptibility_geojson(self):
-        """Loads validated GSI NLSM GeoJSON susceptibility polygons."""
+        """
+        Loads GSI NLSM GeoJSON susceptibility polygons.
+        TODO: Replace with official 1:50,000 GSI NLSM GIS shapefile polygons downloaded
+        directly from Geological Survey of India Bhukosh portal (https://bhukosh.gsi.gov.in)
+        using user login credentials.
+        """
         if os.path.exists(SUSCEPTIBILITY_GEOJSON_PATH):
             try:
                 with open(SUSCEPTIBILITY_GEOJSON_PATH, "r", encoding="utf-8") as f:
@@ -160,11 +165,38 @@ class TerrainService:
                 aspect = 180.0
                 dem_source = npz_res["dem_source"]
             else:
-                elev = float(closest["elevation_m"])
-                slope = float(closest["slope_deg"])
-                aspect = 180.0
-                dem_source = "Outside SRTM Regional Coverage (Station Baseline)"
+                return {
+                    "lat": round(lat, 4),
+                    "lon": round(lon, 4),
+                    "elevation_m": None,
+                    "slope_deg": None,
+                    "aspect_deg": None,
+                    "susceptibility": "outside coverage",
+                    "suscep_factor": 0.0,
+                    "is_inside_mapped_polygon": False,
+                    "susceptibility_source": "outside coverage",
+                    "dem_source": "outside coverage",
+                    "nearest_landmark": closest["name"],
+                    "district": closest["district"],
+                    "critical_corridor": "outside coverage"
+                }
         elif self._dem_loaded and self._dem_raster is not None and self._dem_dataset is not None:
+            if not (self._bounds.left <= lon <= self._bounds.right and self._bounds.bottom <= lat <= self._bounds.top):
+                return {
+                    "lat": round(lat, 4),
+                    "lon": round(lon, 4),
+                    "elevation_m": None,
+                    "slope_deg": None,
+                    "aspect_deg": None,
+                    "susceptibility": "outside coverage",
+                    "suscep_factor": 0.0,
+                    "is_inside_mapped_polygon": False,
+                    "susceptibility_source": "outside coverage",
+                    "dem_source": "outside coverage",
+                    "nearest_landmark": closest["name"],
+                    "district": closest["district"],
+                    "critical_corridor": "outside coverage"
+                }
             try:
                 row, col = self._dem_dataset.index(lon, lat)
                 nrows, ncols = self._dem_raster.shape
@@ -211,15 +243,37 @@ class TerrainService:
                 dem_source = "USGS/NASA SRTM 1 Arc-Second Global (30m GeoTIFF)"
             except Exception as e:
                 logger.error(f"Error computing terrain metrics from SRTM GeoTIFF: {e}")
-                elev = float(closest["elevation_m"])
-                slope = float(closest["slope_deg"])
-                aspect = 180.0
-                dem_source = "Station Topography Fallback"
+                return {
+                    "lat": round(lat, 4),
+                    "lon": round(lon, 4),
+                    "elevation_m": None,
+                    "slope_deg": None,
+                    "aspect_deg": None,
+                    "susceptibility": "outside coverage",
+                    "suscep_factor": 0.0,
+                    "is_inside_mapped_polygon": False,
+                    "susceptibility_source": "outside coverage",
+                    "dem_source": "outside coverage",
+                    "nearest_landmark": closest["name"],
+                    "district": closest["district"],
+                    "critical_corridor": "outside coverage"
+                }
         else:
-            elev = float(closest["elevation_m"])
-            slope = float(closest["slope_deg"])
-            aspect = 180.0
-            dem_source = "Station Topography Fallback"
+            return {
+                "lat": round(lat, 4),
+                "lon": round(lon, 4),
+                "elevation_m": None,
+                "slope_deg": None,
+                "aspect_deg": None,
+                "susceptibility": "outside coverage",
+                "suscep_factor": 0.0,
+                "is_inside_mapped_polygon": False,
+                "susceptibility_source": "outside coverage",
+                "dem_source": "outside coverage",
+                "nearest_landmark": closest["name"],
+                "district": closest["district"],
+                "critical_corridor": "outside coverage"
+            }
 
         # Check GSI NLSM GeoJSON zone intersection first
         matched_zone = self.find_susceptibility_zone(lat, lon)

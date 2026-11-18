@@ -87,7 +87,7 @@ def create_architecture_diagram():
     print("Saved:", path)
 
 
-# 3. Slide 5: Comparison Bar Chart (Current Crisis vs LEWS Sentinel)
+# 3. Slide 5: Comparison Bar Chart (Current Crisis vs TerraSentinel)
 def create_impact_comparison_chart():
     fig, ax = plt.subplots(figsize=(6.2, 4.0), dpi=300)
     ax.set_facecolor('#0f172a')
@@ -102,13 +102,13 @@ def create_impact_comparison_chart():
     ]
 
     current_system = [15, 68, 30, 4, 1]
-    lews_sentinel = [95, 8.6, 88.5, 48, 72]
+    terrasentinel = [95, 8.6, 88.5, 48, 72]
 
     y = np.arange(len(metrics))
     height = 0.35
 
     ax.barh(y - height/2, current_system, height, label='Current Reactive System', color='#ef4444', alpha=0.85, edgecolor='#f87171')
-    ax.barh(y + height/2, lews_sentinel, height, label='LEWS AI Sentinel', color='#10b981', alpha=0.9, edgecolor='#34d399')
+    ax.barh(y + height/2, terrasentinel, height, label='TerraSentinel AI', color='#10b981', alpha=0.9, edgecolor='#34d399')
 
     ax.set_yticks(y)
     ax.set_yticklabels(metrics, color='#f8fafc', fontsize=8, weight='bold')
@@ -120,13 +120,13 @@ def create_impact_comparison_chart():
     ax.xaxis.grid(True, color='#334155', linestyle='--', alpha=0.7)
 
     # Value annotations
-    for i, (c, l) in enumerate(zip(current_system, lews_sentinel)):
+    for i, (c, l) in enumerate(zip(current_system, terrasentinel)):
         ax.text(c + 1.5, i - height/2, f"{c}", color='#fca5a5', va='center', fontsize=7.5, weight='bold')
         ax.text(l + 1.5, i + height/2, f"{l}", color='#6ee7b7', va='center', fontsize=7.5, weight='bold')
 
     ax.set_xlim(0, 110)
     ax.legend(loc='lower right', facecolor='#1e293b', edgecolor='#475569', labelcolor='#f8fafc', fontsize=8)
-    ax.set_title("Operational Comparison: Current Reactive vs. LEWS Sentinel", color='#38bdf8', weight='bold', fontsize=9.5, pad=10)
+    ax.set_title("Operational Comparison: Current Reactive vs. TerraSentinel", color='#38bdf8', weight='bold', fontsize=9.5, pad=10)
 
     plt.tight_layout()
     path = os.path.join(OUTPUT_DIR, "impact_comparison.png")

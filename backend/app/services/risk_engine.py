@@ -25,6 +25,7 @@ from app.config import (
 from app.services.terrain_service import terrain_service
 from app.services.weather_service import weather_service
 from app.services.physics_engine import physics_assessment
+from app.services.fusion_inference import FusionModel
 
 logger = logging.getLogger("lews.risk_engine")
 
@@ -49,6 +50,10 @@ class RiskEngine:
         self._xgb_model = None
         self._rf_model = None
         self._model_meta = {}
+        artifacts_path = os.path.join(DATA_DIR, "..", "..", "..", "artifacts")
+        if not os.path.isdir(artifacts_path):
+            artifacts_path = "artifacts"
+        self._fusion_model = FusionModel(artifacts_path if os.path.isdir(artifacts_path) else None)
         self._load_models()
 
     def _load_models(self):
@@ -255,10 +260,33 @@ class RiskEngine:
         rain_boost_pct: float,
         is_manual_mode: bool
     ) -> Dict[str, Any]:
+        # Check if point is outside SRTM coverage
+        if slope is None or elevation is None or terrain.get("dem_source") == "outside coverage":
+            return {
+                "risk_score": 0.0,
+                "risk_level": "LOW",
+                "badge_color": "#9ca3af",
+                "hazard_index": 0.0,
+                "ml_probability": None,
+                "compound_risk": 0.0,
+                "status": "OUTSIDE_COVERAGE",
+                "note": "Location is outside SRTM DEM regional coverage. No terrain slope or elevation data.",
+                "explanatory_note": "Location is outside SRTM DEM regional coverage. No terrain slope or elevation data.",
+                "explanation": {"formula": "outside coverage", "mode": "outside coverage"},
+                "prediction_trace": {
+                    "coverage_status": "outside coverage",
+                    "dem_source": "outside coverage",
+                    "explanation": {"formula": "outside coverage", "mode": "outside coverage"}
+                },
+                "terrain": terrain,
+                "weather": weather,
+                "advisories": ["Location is outside regional topographic coverage."],
+                "contributors": []
+            }
+
         # Step 3: Transparent Physics-Informed Stability & I-D Threshold Engine
-        # Harilal et al. (2019) Regional I-D Power Law: I = 43.26 * D^(-0.78)
-        # Infinite-Slope Limit-Equilibrium Factor of Safety (FoS) with Monte Carlo strength uncertainty
-        daily_rain_series = [
+        # Infinite-slope Factor of Safety with Monte Carlo strength uncertainty (TRIGRS-inspired)
+        daily_rain_series = weather.get("daily_rain_7d") or [
             max(0.0, (rain_7d - rain_48h) / 5.0),
             max(0.0, (rain_7d - rain_48h) / 5.0),
             max(0.0, (rain_7d - rain_48h) / 5.0),
@@ -267,28 +295,38 @@ class RiskEngine:
             max(0.0, rain_48h - rain_24h),
             max(0.0, rain_24h)
         ]
-        soil_avg = (soil_0_10 * 7.0 + soil_10_40 * 21.0) / 28.0
-        phys = physics_assessment(slope_deg=slope, daily_rain_mm=daily_rain_series, soil_moisture=soil_avg)
+        soil_avg = weather.get("soil_0_28cm") or round((soil_0_10 * 7.0 + soil_10_40 * 21.0) / 28.0, 4)
+
+        weather_dict = {
+            "rain_6h": rain_6h,
+            "rain_24h": rain_24h,
+            "rain_48h": rain_48h,
+            "rain_72h": weather.get("rain_72h", round(rain_48h * 1.25, 1)),
+            "rain_7d": rain_7d,
+            "max_1h_24h": weather.get("max_1h_24h", round(rain_24h / 6.0, 1)),
+            "soil_0_28cm": soil_avg,
+            "daily_rain_7d": daily_rain_series
+        }
+
+        # Genuine Learned Fusion Assessment via FusionModel.assess()
+        fusion_res = self._fusion_model.assess(slope_deg=slope, elevation_m=elevation, w=weather_dict)
+        compound_risk = fusion_res["risk"]
+        risk_level = fusion_res["level"]
+        phys = fusion_res["physics"]
+        ml_prob = fusion_res["ml_probability"]
+        fusion_explanation = fusion_res["explanation"]
+        fusion_mode = fusion_res["mode"]
+        gsi_threshold_breached = bool(phys.get("threshold_breached", False))
         p_failure_phys = phys["slope_stability"]["p_failure"]
         id_ratio = phys["id_threshold"]["ratio"]
-
-        if slope <= 5.0:
-            hazard_index = 0.05
-            gsi_threshold_breached = False
-        else:
-            gsi_threshold_breached = bool(phys["threshold_breached"] and slope >= 15.0)
-            norm_slope = min(2.0, slope / 35.0)
-            raw_rule_score = (0.50 * p_failure_phys + 0.30 * min(1.5, id_ratio) + 0.10 * norm_slope + 0.10 * suscep_factor)
-            if gsi_threshold_breached and slope >= 22.0:
-                raw_rule_score = max(raw_rule_score, 0.70)
-            hazard_index = round(float(np.clip(raw_rule_score, 0.05, 0.99)), 2)
+        hazard_index = p_failure_phys
+        model_name = f"FusionModel ({fusion_mode})"
 
         norm_rain_24h = min(2.0, rain_24h / 43.26)
         norm_rain_48h = min(2.0, rain_48h / 50.4)
         norm_slope = min(2.0, slope / 35.0)
         norm_soil = min(2.0, soil_0_10 / 0.38)
 
-        # Step 4: Genuine Machine Learning Inference (XGBoost Classifier)
         feature_vector_list = [
             round(rain_6h, 2),
             round(rain_24h, 2),
@@ -301,55 +339,15 @@ class RiskEngine:
             round(elevation, 1),
             round(suscep_factor, 2)
         ]
-        feature_vector = np.array(feature_vector_list).reshape(1, -1)
 
-        ml_prob = None
-        model_name = "XGBoost Classifier (Primary)"
-        if self._xgb_model is not None:
-            try:
-                ml_prob = float(round(self._xgb_model.predict_proba(feature_vector)[0, 1], 3))
-            except Exception as e:
-                logger.error(f"XGBoost inference error: {e}")
-                ml_prob = None
-
-        if ml_prob is None and self._rf_model is not None:
-            try:
-                ml_prob = float(round(self._rf_model.predict_proba(feature_vector)[0, 1], 3))
-                model_name = "Random Forest Classifier (Fallback)"
-            except Exception:
-                ml_prob = round(1.0 / (1.0 + np.exp(-3.5 * (hazard_index - 0.5))), 3)
-                model_name = "Calibrated Sigmoid Heuristic"
-
-        if ml_prob is None:
-            ml_prob = round(1.0 / (1.0 + np.exp(-3.5 * (hazard_index - 0.5))), 3)
-            model_name = "Calibrated Sigmoid Heuristic"
-
-        if slope <= 5.0:
-            ml_prob = min(ml_prob, 0.15)
-
-        # Step 5: Fused Alert Decision Engine
-        # Continuous weighted fusion: 55% ML Probability + 45% Physics Hazard Index
-        compound_risk = round(0.55 * ml_prob + 0.45 * hazard_index, 3)
-
-        # Flat valley floor protection: slope <= 5 degrees cannot initiate debris failure
-        if slope <= 5.0:
-            compound_risk = min(compound_risk, 0.15)
-        elif gsi_threshold_breached and slope >= 22.0:
-            compound_risk = max(compound_risk, 0.68)
-
-        # Validated Risk Classification Bands (Evaluated against 2024 holdout dataset)
-        if compound_risk >= 0.85:
-            risk_level = "CRITICAL"
-            badge_color = "#ef4444"  # Red
-        elif compound_risk >= 0.65:
-            risk_level = "HIGH"
-            badge_color = "#ef4444"  # Red
-        elif compound_risk >= 0.45:
-            risk_level = "MODERATE"
-            badge_color = "#f59e0b"  # Amber
+        if risk_level == "CRITICAL":
+            badge_color = "#ef4444"
+        elif risk_level == "HIGH":
+            badge_color = "#ef4444"
+        elif risk_level == "MODERATE":
+            badge_color = "#f59e0b"
         else:
-            risk_level = "LOW"
-            badge_color = "#10b981"  # Green
+            badge_color = "#10b981"
 
         # Diagnostic Explanation & Action Directives
         is_inside_mapped = terrain.get("is_inside_mapped_polygon", False)
@@ -392,7 +390,7 @@ class RiskEngine:
                 "feature_vector_names": FEATURE_COLUMNS,
                 "feature_vector_values": feature_vector_list,
                 "ml_probability": ml_prob,
-                "ml_probability_pct": round(ml_prob * 100, 1)
+                "ml_probability_pct": round(ml_prob * 100, 1) if ml_prob is not None else None
             },
             "physics_hazard_index": {
                 "formula": "0.50 * P(FoS < 1) + 0.30 * min(1.5, I-D Ratio) + 0.10 * (Slope/35) + 0.10 * Suscep",
@@ -408,14 +406,17 @@ class RiskEngine:
                 "resulting_score": hazard_index
             },
             "compound_risk": {
-                "formula": "0.55 * ML_Probability + 0.45 * Physics_Hazard_Index",
-                "ml_contribution": round(0.55 * ml_prob, 3),
-                "physics_contribution": round(0.45 * hazard_index, 3),
+                "formula": fusion_explanation.get("formula", "risk = sigmoid(b0 + w1*logit(ML) + w2*logit(Physics) + w3*log(1+ID_ratio))"),
+                "mode": fusion_mode,
+                "weights": fusion_explanation.get("weights", {}),
+                "log_odds_contribution": fusion_explanation.get("log_odds_contribution", {}),
+                "inputs": fusion_explanation.get("inputs", {}),
                 "compound_score": round(compound_risk, 3),
-                "risk_band": "<0.45: LOW, 0.45-0.65: MODERATE, >=0.65: HIGH, >=0.85: CRITICAL",
+                "risk_band": "<0.40: LOW, 0.40-0.65: MODERATE, >=0.65: HIGH, >=0.85: CRITICAL",
                 "risk_level": risk_level,
                 "badge_color": badge_color
             },
+            "explanation": fusion_explanation,
             "stage_1_raw_telemetry": {
                 "coordinates": {"lat": lat, "lon": lon},
                 "weather_source": weather.get("source", "N/A"),
@@ -568,7 +569,8 @@ class RiskEngine:
         mapped_label = "Mapped GSI Zone" if is_inside_mapped else "Outside Mapped GSI Coverage"
         contributors.append({"factor": "Static Susceptibility", "impact": mapped_label, "value": suscep})
 
-        contributors.append({"factor": "ML Landslide Probability", "impact": "XGBoost Historical Model", "value": f"{ml_prob * 100:.1f}%"})
+        ml_prob_str = f"{ml_prob * 100:.1f}%" if ml_prob is not None else "N/A (Physics Route)"
+        contributors.append({"factor": "ML Landslide Probability", "impact": "XGBoost Historical Model", "value": ml_prob_str})
         contributors.append({"factor": "Physics Hazard Index", "impact": "GSI Empirical Benchmark", "value": f"{hazard_index:.2f}"})
 
         if gsi_breached:
@@ -581,14 +583,14 @@ class RiskEngine:
             if gsi_breached:
                 note = f"High/Critical emergency: GSI Intensity-Duration threshold exceeded ({rain_24h}mm/24h on {slope}° slope). Immediate debris flow risk."
             else:
-                note = f"High compound hazard ({compound_risk:.2f}): Heavy multi-day rainfall ({rain_24h}mm 24h, {rain_7d}mm 7d) on {slope}° slope. ML failure probability is {ml_prob*100:.1f}%. [{coverage_text}]."
+                note = f"High compound hazard ({compound_risk:.2f}): Heavy multi-day rainfall ({rain_24h}mm 24h, {rain_7d}mm 7d) on {slope}° slope. ML failure probability is {ml_prob_str}. [{coverage_text}]."
         elif level == "MODERATE":
-            if not is_inside_mapped and ml_prob > 0.60:
-                note = f"Moderate dynamic hazard ({compound_risk:.2f}): Location is outside mapped GSI susceptibility polygons ({suscep} baseline); however, elevated 7-day antecedent precipitation ({rain_7d}mm) and soil moisture ({soil} m³/m³) generate moderate hydrological failure risk (ML Prob: {ml_prob*100:.1f}%, Physics: {hazard_index:.2f})."
+            if not is_inside_mapped and (ml_prob is not None and ml_prob > 0.60):
+                note = f"Moderate dynamic hazard ({compound_risk:.2f}): Location is outside mapped GSI susceptibility polygons ({suscep} baseline); however, elevated 7-day antecedent precipitation ({rain_7d}mm) and soil moisture ({soil} m³/m³) generate moderate hydrological failure risk (ML Prob: {ml_prob_str}, Physics: {hazard_index:.2f})."
             else:
-                note = f"Moderate advisory ({compound_risk:.2f}): Rainfall accumulation ({rain_24h}mm 24h, {rain_7d}mm 7d) on {slope}° slope approaches operational warning threshold (ML Prob: {ml_prob*100:.1f}%). [{coverage_text}]."
+                note = f"Moderate advisory ({compound_risk:.2f}): Rainfall accumulation ({rain_24h}mm 24h, {rain_7d}mm 7d) on {slope}° slope approaches operational warning threshold (ML Prob: {ml_prob_str}). [{coverage_text}]."
         else:
-            note = f"Low hazard ({compound_risk:.2f}): Environmental precipitation ({rain_24h}mm 24h, {rain_7d}mm 7d) and {slope}° slope are within normal soil retention limits (ML Prob: {ml_prob*100:.1f}%). [{coverage_text}]."
+            note = f"Low hazard ({compound_risk:.2f}): Environmental precipitation ({rain_24h}mm 24h, {rain_7d}mm 7d) and {slope}° slope are within normal soil retention limits (ML Prob: {ml_prob_str}). [{coverage_text}]."
 
         return note, contributors
 

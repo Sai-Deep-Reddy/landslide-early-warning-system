@@ -1,6 +1,7 @@
 {
   "type": "FeatureCollection",
   "name": "GSI_NLSM_Sikkim_Susceptibility_Zones",
+  "_todo_comment": "TODO: Replace prototype corridors with official 1:50,000 GSI NLSM GIS shapefile polygons downloaded directly from Geological Survey of India Bhukosh portal (https://bhukosh.gsi.gov.in) using user login credentials.",
   "crs": {
     "type": "name",
     "properties": {

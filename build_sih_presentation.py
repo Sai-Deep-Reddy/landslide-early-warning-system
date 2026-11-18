@@ -5,11 +5,19 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
-TEMPLATE_PATH = r"C:\Users\saide\Downloads\SIH2026-IDEA-Presentation-Format.pptx"
-OUTPUT_PATH = r"C:\Users\saide\Downloads\SIH2026_PS26001_LEWS_Presentation.pptx"
+TEMPLATE_PATH = os.environ.get("SIH_TEMPLATE_PATH", r"SIH2026-IDEA-Presentation-Format.pptx")
+OUTPUT_PATH = r"SIH2026_PS26001_LEWS_Presentation.pptx"
 ASSETS_DIR = os.path.join(os.getcwd(), "slide_assets")
 
-prs = pptx.Presentation(TEMPLATE_PATH)
+if os.path.exists(TEMPLATE_PATH):
+    prs = pptx.Presentation(TEMPLATE_PATH)
+else:
+    prs = pptx.Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    blank_layout = prs.slide_layouts[6] if len(prs.slide_layouts) > 6 else prs.slide_layouts[0]
+    for _ in range(6):
+        prs.slides.add_slide(blank_layout)
 
 # Color Palette Constants
 NAVY_DARK = RGBColor(15, 23, 42)      # #0f172a
@@ -68,8 +76,8 @@ for shape in slide1.shapes:
             ("Problem Statement Title", "AI-Powered Real-Time Landslide Early Warning & Monitoring System for North Eastern Region (NER)", WHITE),
             ("Theme", "Disaster Management / Climate Resilience & Disaster Management", CYAN_ACCENT),
             ("PS Category", "Software", GREEN_ALERT),
-            ("Team ID", "92770", AMBER_ALERT),
-            ("Team Name", "404 The Optimists (Project: GeoSentinel-AI)", WHITE)
+            ("Team ID", "130283", AMBER_ALERT),
+            ("Team Name", "Endurance (Project: TerraSentinel)", WHITE)
         ]
         
         for label, val, val_col in items:
@@ -100,7 +108,7 @@ style_text_frame(tf_tag)
 p1 = tf_tag.paragraphs[0]
 p1.alignment = PP_ALIGN.LEFT
 r_tag = p1.add_run()
-r_tag.text = "GeoSentinel-AI: Multi-Sensor Early Warning & Decision Support"
+r_tag.text = "TerraSentinel: Multi-Sensor Early Warning & Decision Support"
 r_tag.font.bold = True
 r_tag.font.size = Pt(12)
 r_tag.font.color.rgb = CYAN_ACCENT
@@ -121,13 +129,13 @@ for s in slide2.shapes:
     if s.name == "Title 1" and s.has_text_frame:
         s.left = Inches(1.85)
         s.width = Inches(8.75)
-        s.text_frame.text = "GeoSentinel: AI Landslide Early Warning & Monitoring System for NER"
+        s.text_frame.text = "TerraSentinel: AI Landslide Early Warning & Monitoring System for NER"
         s.text_frame.paragraphs[0].font.size = Pt(20)
         s.text_frame.paragraphs[0].font.bold = True
         s.text_frame.paragraphs[0].font.color.rgb = RGBColor(30, 58, 138)
         s.text_frame.paragraphs[0].font.name = "Segoe UI"
     elif s.name == "Oval 9" and s.has_text_frame:
-        s.text_frame.text = "404 The\nOptimists"
+        s.text_frame.text = "Endurance"
         s.text_frame.paragraphs[0].font.size = Pt(9.5)
         s.text_frame.paragraphs[0].font.bold = True
     elif s.name == "TextBox 8":
@@ -255,7 +263,7 @@ for s in slide3.shapes:
         s.text_frame.paragraphs[0].font.bold = True
         s.text_frame.paragraphs[0].font.color.rgb = RGBColor(30, 58, 138)
     elif s.name in ["Oval 10", "Oval 9"] and s.has_text_frame:
-        s.text_frame.text = "404 The\nOptimists"
+        s.text_frame.text = "Endurance"
         s.text_frame.paragraphs[0].font.size = Pt(9.5)
         s.text_frame.paragraphs[0].font.bold = True
     elif s.name == "TextBox 8":
@@ -337,7 +345,7 @@ for s in slide4.shapes:
         s.text_frame.paragraphs[0].font.bold = True
         s.text_frame.paragraphs[0].font.color.rgb = RGBColor(30, 58, 138)
     elif s.name in ["Oval 11", "Oval 10"] and s.has_text_frame:
-        s.text_frame.text = "404 The\nOptimists"
+        s.text_frame.text = "Endurance"
         s.text_frame.paragraphs[0].font.size = Pt(9.5)
         s.text_frame.paragraphs[0].font.bold = True
     elif s.name == "TextBox 8":
@@ -425,7 +433,7 @@ for s in slide5.shapes:
         s.text_frame.paragraphs[0].font.bold = True
         s.text_frame.paragraphs[0].font.color.rgb = RGBColor(30, 58, 138)
     elif s.name in ["Oval 11", "Oval 10"] and s.has_text_frame:
-        s.text_frame.text = "404 The\nOptimists"
+        s.text_frame.text = "Endurance"
         s.text_frame.paragraphs[0].font.size = Pt(9.5)
         s.text_frame.paragraphs[0].font.bold = True
     elif s.name == "TextBox 8":
@@ -507,7 +515,7 @@ for s in slide6.shapes:
         s.text_frame.paragraphs[0].font.bold = True
         s.text_frame.paragraphs[0].font.color.rgb = RGBColor(30, 58, 138)
     elif s.name in ["Oval 8", "Oval 9"] and s.has_text_frame:
-        s.text_frame.text = "404 The\nOptimists"
+        s.text_frame.text = "Endurance"
         s.text_frame.paragraphs[0].font.size = Pt(9.5)
         s.text_frame.paragraphs[0].font.bold = True
     elif s.name == "TextBox 8":

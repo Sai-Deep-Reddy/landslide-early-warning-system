@@ -45,3 +45,5 @@ Thumbs.db
 
 *.npz
 
+.feature_cache.json
+replay_*.json

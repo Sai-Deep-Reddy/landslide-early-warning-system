@@ -20,7 +20,10 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from physics_engine import physics_assessment
+try:
+    from app.services.physics_engine import physics_assessment
+except ImportError:
+    from physics_engine import physics_assessment
 
 ML_FEATURES = ["rain_6h", "rain_24h", "rain_48h", "rain_72h", "rain_7d", "max_1h_24h",
                "soil_0_28cm", "slope_deg", "elevation_m"]

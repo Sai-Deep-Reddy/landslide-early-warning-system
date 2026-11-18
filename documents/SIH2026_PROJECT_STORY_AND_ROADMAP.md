@@ -1,6 +1,6 @@
 # 🏔️ GeoSentinel-AI (LEWS Sentinel): Project Chronicle & Technical Dossier
 ### Smart India Hackathon (SIH 2026) | Problem Statement ID: SIH_26001
-**Team Name:** 404 The Optimists (Team ID: 92770)  
+**Team Name:** Endurance (Team ID: 130283)  
 **Theme:** Disaster Management / Climate Resilience  
 **Category:** Software / Geo-AI Decision Support  
 **Public Code Repository:** [github.com/Sai-Deep-Reddy/landslide-early-warning-system](https://github.com/Sai-Deep-Reddy/landslide-early-warning-system)  
@@ -81,22 +81,23 @@ During a milestone run, the FastAPI server started cleanly, but the web UI was c
 
 | Subsystem | Status | Technical Details |
 |---|---|---|
-| **Digital Elevation Model (DEM)** | ✅ Completed | Ingests USGS/NASA SRTM 1-Arcsecond (30m) elevation tiles (`N27E088`, `N28E088`). Slope computed via Horn's $3 \times 3$ finite-difference convolution. Graceful station fallback for cloud serverless. |
-| **Meteorological Pipeline** | ✅ Completed | Open-Meteo & IMD protocol integration. Ingests 6h, 24h, 48h real-time rainfall, 7-day antecedent precipitation index (API), and 24h hourly forward forecast. |
-| **5-Depth Soil Hydrology** | ✅ Completed | ECMWF multi-layer soil moisture (0–1cm, 1–3cm, 3–9cm, 9–27cm, 27–81cm) to track unsaturated wetting front migration and pore-pressure build-up. |
-| **GSI Susceptibility Mapping** | ✅ Completed | Vector polygon integration of GSI National Landslide Susceptibility Mapping (NLSM) with point-in-polygon spatial indexing. |
-| **Machine Learning Pipeline** | ✅ Completed | Deserialized XGBoost and Random Forest classifiers. Feature matrix includes rainfall accumulation, soil saturation, slope, elevation, and lithology factors. |
-| **Deterministic Physics Engine** | ✅ Completed | GSI empirical Intensity-Duration power-law equations ($I = \alpha \cdot D^{-\beta}$) combined with infinite-slope limit equilibrium approximations. |
-| **Continuous Decision Fusion** | ✅ Completed | Hard-coded $\text{Risk} = 0.55 \cdot \text{ML} + 0.45 \cdot \text{Physics}$ with documented 4-tier risk categories (Low, Moderate, High, Critical). |
-| **6-Layer UI Inspector** | ✅ Completed | Decomposed inspection side-panel providing live telemetry, ML attribution, physics index, and operational directives. |
-| **Historical Landslide Catalogue** | ✅ Completed | 155 field-verified GSI landslide incidents in Sikkim (2018–2024) + negative non-failure controls. |
-| **Interactive GIS Command Map** | ✅ Completed | Leaflet.js with dark canvas, satellite imagery, GSI susceptibility layer toggle, color-coded hazard nodes, and click-anywhere point inspection. |
-| **What-If Scenario Simulator** | ✅ Completed | Live rainfall stress-testing slider (+10% to +100%) that simulates flash cloudburst impacts across all monitored highway corridors. |
-| **Historical Replay Mode** | ✅ Completed | 48-hour event timeline scrubber demonstrating 3.5 to 4.3 hours of advance warning lead time before major historical collapses (e.g., Mangan August 2024). |
+| **Digital Elevation Model (DEM)** | ✅ Completed & Wired | Ingests USGS/NASA SRTM 1-Arcsecond (30m) elevation tiles with fast precomputed Horn slope via `NpzTerrain`. Coordinates outside regional coverage return explicit "outside coverage". |
+| **Meteorological Pipeline** | ✅ Completed & Wired | Live and historical weather ingestion via `weather_fix.live_features()` strictly before event cutoff to guarantee zero post-event leakage. |
+| **Soil Hydrology** | ✅ Completed & Wired | Unified 0–28 cm depth-weighted soil moisture eliminating artificial month-constant proxies across both archive and live telemetry. |
+| **GSI Susceptibility Mapping** | ⚠️ Fix built, not yet wired into live backend | Prototype corridor polygons loaded with point-in-polygon spatial indexing; pending ingestion of official 1:50,000 GSI NLSM shapefile directly from user's GSI Bhukosh account (TODO documented). |
+| **Machine Learning Pipeline** | ✅ Completed & Wired | XGBoost classifier trained with monotone physics constraints (`xgb_monotone.joblib`) on cited real event dataset with case-crossover controls. |
+| **Deterministic Physics Engine** | ✅ Completed & Wired | Regional Intensity-Duration (I-D) power-law thresholds ($I = 43.26 \cdot D^{-0.78}$, Harilal et al. 2019) combined with a TRIGRS-inspired infinite-slope Factor of Safety engine with Monte Carlo uncertainty ($P(\text{FoS} < 1)$) rather than claiming the USGS Fortran TRIGRS binary is used. |
+| **Continuous Decision Fusion** | ✅ Completed & Wired | Learned meta-learner (L2 logistic stacking) over `[ML_prob, physics_P_fail, ID_ratio]`, providing single-source explainability and eliminating UI/computation drift. |
+| **6-Layer UI Inspector** | ✅ Completed & Wired | Decomposed inspection side-panel providing live telemetry, ML attribution, physics index, and single-source explainability formula. |
+| **Historical Landslide Catalogue** | ✅ Completed & Wired | Real, source-cited rainfall landslide events from NASA COOLR / Global Landslide Catalog + verified Sikkim events with authentic source URLs (synthetic generator renamed to `make_synthetic_demo_data.py` and excluded from training). |
+| **Interactive GIS Command Map** | ✅ Completed & Wired | Leaflet.js with dark canvas, satellite imagery, GSI susceptibility layer toggle, color-coded hazard nodes, and click-anywhere point inspection with out-of-coverage notifications. |
+| **What-If Scenario Simulator** | ✅ Completed & Wired | Live rainfall stress-testing slider (+10% to +100%) that simulates flash cloudburst impacts across all monitored highway corridors with monotone physical consistency. |
+| **Historical Replay Mode** | ✅ Completed & Wired | Hour-by-hour ERA5 reanalysis timeline for Mangan June 2024 with 72.0h warning lead time empirically achieved and verifiable source citation. |
+| **Emergency Alert Protocol (CAP)** | ✅ Completed & Wired | OASIS CAP v1.2 XML endpoint (`/api/alerts/cap`) returning `Draft` status with human-in-the-loop officer `approve()` action (`/api/alerts/cap/approve`). |
 | **Citizen & Field Incident Reporting** | ✅ Completed | Modal dialogue for ground officers and citizens to submit GPS coordinates, damage category, crack observations, and photo evidence. |
-| **Automated Test Suites** | ✅ Completed | 4 suites passing 100%: `test_dem.py`, `test_model.py`, `test_api.py`, `test_decision_fusion.py`. |
+| **Automated Test Suites** | ✅ Completed | All test suites passing 100%: `fixkit/test_fixkit.py` (11/11 offline tests), `sanity_probe.py`, `test_dem.py`, `test_api.py`. |
 | **Cloud Deployment** | ✅ Completed | Live on Vercel Edge Serverless + Public GitHub repository. |
-| **SIH Presentation Builder** | ✅ Completed | Custom automated Python-PPTX script (`build_sih_presentation.py`) mapping project achievements into the official SIH 2026 6-slide template. |
+| **SIH Presentation Builder** | ✅ Completed | Custom automated Python-PPTX script (`build_sih_presentation.py`) mapping project achievements into the official SIH 2026 6-slide template with Team Endurance (ID: 130283). |
 
 ---
 

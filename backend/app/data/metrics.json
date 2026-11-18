@@ -1,155 +1,208 @@
 {
-  "status": "pipeline_scaffold_synthetic",
-  "model_version": "XGBoost-v3.0",
-  "dataset_version": "v3.0-DEMO-SCAFFOLD",
-  "train_period": "2018-2023",
-  "test_period": "2024 Holdout Season",
-  "total_test_samples": 83,
+  "status": "genuine_fusion_empirical_holdout",
+  "model_version": "TerraSentinel-Fusion-v3.1",
+  "dataset_version": "NASA COOLR / GLC + Sikkim Verified Events",
+  "train_period": "< 2016",
+  "test_period": ">= 2016",
+  "total_test_samples": 77,
+  "meta_learner_weights": {
+    "ML_logit": 0.122,
+    "physics_logit": -0.082,
+    "log1p_ID_ratio": 0.799
+  },
   "metrics": {
-    "precision_pct": 50.0,
-    "recall_pct": 76.0,
-    "f1_score_pct": 60.3,
-    "roc_auc": 0.765,
-    "pr_auc": 0.599,
-    "false_alarm_rate_pct": 50.0
+    "precision_pct": 13.5,
+    "recall_pct": 63.6,
+    "f1_score_pct": 22.3,
+    "roc_auc": 0.518,
+    "pr_auc": 0.177,
+    "false_alarm_rate_pct": 68.2,
+    "measured_lead_time_hours": 72.0
   },
   "confusion_matrix": {
-    "tp": 19,
-    "fp": 19,
-    "fn": 6,
-    "tn": 39
+    "tp": 7,
+    "fp": 45,
+    "fn": 4,
+    "tn": 21
   },
+  "feature_importance_ranking": [
+    {
+      "feature": "rain_6h",
+      "importance": 0.211,
+      "percentage": 21.1
+    },
+    {
+      "feature": "max_1h_24h",
+      "importance": 0.163,
+      "percentage": 16.3
+    },
+    {
+      "feature": "soil_0_28cm",
+      "importance": 0.152,
+      "percentage": 15.2
+    },
+    {
+      "feature": "rain_7d",
+      "importance": 0.113,
+      "percentage": 11.3
+    },
+    {
+      "feature": "elevation_m",
+      "importance": 0.092,
+      "percentage": 9.2
+    },
+    {
+      "feature": "rain_24h",
+      "importance": 0.083,
+      "percentage": 8.3
+    },
+    {
+      "feature": "rain_48h",
+      "importance": 0.073,
+      "percentage": 7.3
+    },
+    {
+      "feature": "rain_72h",
+      "importance": 0.062,
+      "percentage": 6.2
+    },
+    {
+      "feature": "slope_deg",
+      "importance": 0.051,
+      "percentage": 5.1
+    }
+  ],
+  "models_comparison": [
+    {
+      "model": "I-D threshold rule (published, ratio>=1)",
+      "precision": "17.5%",
+      "recall": "90.9%",
+      "roc_auc": 0.643,
+      "roc_auc_ci": "0.466-0.804",
+      "pr_auc": 0.218,
+      "explainability": "Baseline comparator"
+    },
+    {
+      "model": "Physics FoS alone",
+      "precision": "14.3%",
+      "recall": "100.0%",
+      "roc_auc": 0.671,
+      "roc_auc_ci": "0.458-0.854",
+      "pr_auc": 0.349,
+      "explainability": "Baseline comparator"
+    },
+    {
+      "model": "XGBoost alone (monotone)",
+      "precision": "17.5%",
+      "recall": "90.9%",
+      "roc_auc": 0.53,
+      "roc_auc_ci": "0.361-0.706",
+      "pr_auc": 0.158,
+      "explainability": "Baseline comparator"
+    },
+    {
+      "model": "Old fixed blend 0.55*ML + 0.45*physics",
+      "precision": "16.1%",
+      "recall": "90.9%",
+      "roc_auc": 0.652,
+      "roc_auc_ci": "0.464-0.825",
+      "pr_auc": 0.229,
+      "explainability": "Baseline comparator"
+    },
+    {
+      "model": "Learned meta-learner (L2 logistic stacking)",
+      "precision": "13.5%",
+      "recall": "63.6%",
+      "roc_auc": 0.518,
+      "roc_auc_ci": "0.314-0.708",
+      "pr_auc": 0.177,
+      "explainability": "Learned single-source formula"
+    }
+  ],
   "roc_curve_samples": [
     {
       "false_positive_rate": 0.0,
       "true_positive_rate": 0.0
     },
     {
-      "false_positive_rate": 0.0,
-      "true_positive_rate": 0.2
+      "false_positive_rate": 0.0152,
+      "true_positive_rate": 0.0
     },
     {
-      "false_positive_rate": 0.086,
-      "true_positive_rate": 0.28
+      "false_positive_rate": 0.0758,
+      "true_positive_rate": 0.0
     },
     {
-      "false_positive_rate": 0.121,
-      "true_positive_rate": 0.4
+      "false_positive_rate": 0.0758,
+      "true_positive_rate": 0.0909
     },
     {
-      "false_positive_rate": 0.19,
-      "true_positive_rate": 0.44
+      "false_positive_rate": 0.1364,
+      "true_positive_rate": 0.0909
     },
     {
-      "false_positive_rate": 0.207,
-      "true_positive_rate": 0.52
+      "false_positive_rate": 0.1364,
+      "true_positive_rate": 0.3636
     },
     {
-      "false_positive_rate": 0.259,
-      "true_positive_rate": 0.6
+      "false_positive_rate": 0.4697,
+      "true_positive_rate": 0.3636
     },
     {
-      "false_positive_rate": 0.293,
-      "true_positive_rate": 0.68
+      "false_positive_rate": 0.4697,
+      "true_positive_rate": 0.4545
     },
     {
-      "false_positive_rate": 0.31,
-      "true_positive_rate": 0.76
+      "false_positive_rate": 0.4848,
+      "true_positive_rate": 0.4545
     },
     {
-      "false_positive_rate": 0.362,
-      "true_positive_rate": 0.84
+      "false_positive_rate": 0.4848,
+      "true_positive_rate": 0.5455
     },
     {
-      "false_positive_rate": 0.397,
-      "true_positive_rate": 0.88
+      "false_positive_rate": 0.6212,
+      "true_positive_rate": 0.5455
     },
     {
-      "false_positive_rate": 0.569,
-      "true_positive_rate": 0.96
+      "false_positive_rate": 0.6212,
+      "true_positive_rate": 0.6364
     },
     {
-      "false_positive_rate": 0.759,
+      "false_positive_rate": 0.697,
+      "true_positive_rate": 0.6364
+    },
+    {
+      "false_positive_rate": 0.7273,
+      "true_positive_rate": 0.6364
+    },
+    {
+      "false_positive_rate": 0.7727,
+      "true_positive_rate": 0.6364
+    },
+    {
+      "false_positive_rate": 0.7727,
+      "true_positive_rate": 0.7273
+    },
+    {
+      "false_positive_rate": 0.803,
+      "true_positive_rate": 0.7273
+    },
+    {
+      "false_positive_rate": 0.803,
+      "true_positive_rate": 0.9091
+    },
+    {
+      "false_positive_rate": 0.8636,
+      "true_positive_rate": 0.9091
+    },
+    {
+      "false_positive_rate": 0.8636,
       "true_positive_rate": 1.0
     },
     {
       "false_positive_rate": 1.0,
       "true_positive_rate": 1.0
-    }
-  ],
-  "feature_importance_ranking": [
-    {
-      "feature": "soil_10_40cm",
-      "importance": 0.263,
-      "percentage": 26.3
-    },
-    {
-      "feature": "soil_0_10cm",
-      "importance": 0.18,
-      "percentage": 18.0
-    },
-    {
-      "feature": "rain_7d",
-      "importance": 0.111,
-      "percentage": 11.1
-    },
-    {
-      "feature": "elevation_m",
-      "importance": 0.107,
-      "percentage": 10.7
-    },
-    {
-      "feature": "rain_48h",
-      "importance": 0.084,
-      "percentage": 8.4
-    },
-    {
-      "feature": "slope_deg",
-      "importance": 0.08,
-      "percentage": 8.0
-    },
-    {
-      "feature": "rain_6h",
-      "importance": 0.063,
-      "percentage": 6.3
-    },
-    {
-      "feature": "rain_24h",
-      "importance": 0.061,
-      "percentage": 6.1
-    },
-    {
-      "feature": "suscep_factor",
-      "importance": 0.049,
-      "percentage": 4.9
-    },
-    {
-      "feature": "soil_27_81cm",
-      "importance": 0.0,
-      "percentage": 0.0
-    }
-  ],
-  "models_comparison": [
-    {
-      "model": "GSI Empirical I-D Rule Baseline",
-      "precision": "39.3%",
-      "recall": "44.0%",
-      "f1": "41.5%",
-      "explainability": "GSI Intensity-Duration Power Law (I = 43.26*D^-0.78)"
-    },
-    {
-      "model": "XGBoost Classifier (Selected)",
-      "precision": "50.0%",
-      "recall": "76.0%",
-      "f1": "60.3%",
-      "explainability": "Gradient Boosted Trees (scale_pos_weight compensated)"
-    },
-    {
-      "model": "Random Forest Classifier",
-      "precision": "50.0%",
-      "recall": "76.0%",
-      "f1": "60.3%",
-      "explainability": "Balanced Bagged Decision Forest"
     }
   ]
 }

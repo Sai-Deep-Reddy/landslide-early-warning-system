@@ -785,7 +785,7 @@ async function loadValidationData() {
     document.getElementById('val-metric-precision').textContent = `${metrics.precision_pct}%`;
     document.getElementById('val-metric-recall').textContent = `${metrics.recall_pct}%`;
     document.getElementById('val-metric-f1').textContent = `${metrics.f1_score_pct}%`;
-    document.getElementById('val-metric-leadtime').textContent = `${metrics.median_warning_lead_time_hours} hrs`;
+    document.getElementById('val-metric-leadtime').textContent = metrics.measured_lead_time_hours ? `${metrics.measured_lead_time_hours} hrs` : (metrics.median_warning_lead_time_hours ? `${metrics.median_warning_lead_time_hours} hrs` : '-- hrs');
     document.getElementById('val-metric-auc').textContent = metrics.roc_auc ? metrics.roc_auc.toFixed(3) : '0.98';
 
     // 3. Populate Confusion Matrix Table

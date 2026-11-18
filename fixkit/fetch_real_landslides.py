@@ -103,6 +103,48 @@ def fetch_coolr(bbox) -> List[Dict]:
                 return rows
         except Exception as e:  # noqa
             print(f"[COOLR] {url} failed: {e}")
+
+    # Fallback to official NASA GLC mirror CSV if ArcGIS endpoints are down
+    print("[COOLR] ArcGIS endpoints failed. Falling back to NASA GLC public catalog mirror...")
+    try:
+        import io
+        glc_url = "https://raw.githubusercontent.com/Landslide-Analytics-System/GLAS/master/Global%20Landslide%20Catalog.csv"
+        r = requests.get(glc_url, timeout=60)
+        r.raise_for_status()
+        reader = csv.DictReader(io.StringIO(r.content.decode("utf-8-sig")))
+        xmin, ymin, xmax, ymax = bbox
+        rows = []
+        for row in reader:
+            lat_str = row.get("latitude") or row.get("Y")
+            lon_str = row.get("longitude") or row.get("X")
+            if not lat_str or not lon_str or not lat_str.strip() or not lon_str.strip():
+                continue
+            try:
+                lat, lon = float(lat_str), float(lon_str)
+            except ValueError:
+                continue
+            if xmin <= lon <= xmax and ymin <= lat <= ymax:
+                d_str = (row.get("event_date") or "").strip().replace("/", "-")[:10]
+                rows.append({
+                    "event_id": f"COOLR-{row.get('event_id') or row.get('OBJECTID')}",
+                    "event_date": d_str,
+                    "event_time": (row.get("event_time") or "").strip(),
+                    "lat": lat,
+                    "lon": lon,
+                    "location_accuracy": row.get("location_a") or "",
+                    "trigger": row.get("landslide1") or row.get("landslide_") or "",
+                    "size": row.get("landslid_1") or "",
+                    "fatalities": row.get("fatality_c") or "",
+                    "place": row.get("event_titl") or row.get("location_d") or "",
+                    "source_url": row.get("source_lin") or "",
+                    "citation": row.get("source_nam") or "NASA COOLR/GLC",
+                    "dataset": "NASA COOLR/GLC",
+                })
+        print(f"[COOLR] Retrieved {len(rows)} features from NASA GLC mirror for bbox {bbox}")
+        return rows
+    except Exception as e:
+        print(f"[COOLR] NASA GLC mirror failed: {e}")
+
     print("[COOLR] All endpoints failed. Download CSV manually from the COOLR download page "
           "(linked at landslides.nasa.gov) and save as coolr_manual.csv")
     return []

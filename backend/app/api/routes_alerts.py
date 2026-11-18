@@ -31,7 +31,7 @@ def get_cap_alert(
     area_desc: str = Query("Mangan District, North Sikkim", description="Geographic area description"),
     risk: float = Query(0.72, description="Calculated compound risk score"),
     road: str = Query("NH-10 / Mangan-Chungthang Highway", description="Threatened transport corridor"),
-    status: str = Query("Exercise", description="CAP status: Draft, Actual, Exercise, Test")
+    status: str = Query("Draft", description="CAP status: Draft, Actual, Exercise, Test")
 ):
     """
     Exports OASIS Common Alerting Protocol (CAP v1.2) XML payload compliant with India's SACHET emergency alerting architecture.

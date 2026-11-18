@@ -99,7 +99,7 @@ def make_samples(events: List[Dict], n_temporal: int, n_spatial: int, bbox, seed
             if near_event(events, lat, lon, e["date"], km_r=5.0, days=3):
                 continue
             t = terrain(lat, lon)
-            if t["slope_deg"] is not None and t["slope_deg"] < 15:   # flat valley floors are trivial negatives
+            if not t or t.get("slope_deg") is None or t["slope_deg"] < 15:   # flat valley floors or outside DEM
                 continue
             out.append({"sample_id": f"{e['event_id']}-S{k}", "label": 0, "neg_type": "spatial",
                         "lat": round(lat, 4), "lon": round(lon, 4), "day": e["date"], "group": e["event_id"],
@@ -109,15 +109,15 @@ def make_samples(events: List[Dict], n_temporal: int, n_spatial: int, bbox, seed
 
 
 def enrich(s: Dict, terrain, cache: Dict) -> Optional[Dict]:
+    t = terrain(s["lat"], s["lon"])
+    if not t or t.get("slope_deg") is None:
+        return None
     key = f"{s['lat']:.4f},{s['lon']:.4f},{s['day']}"
     if key not in cache:
         # cutoff = 00:00 IST of the day => only rain BEFORE the event day (no post-event leakage)
         cache[key] = features_at(s["lat"], s["lon"], dt.datetime.combine(s["day"], dt.time(0, 0)))
     w = cache[key]
     if not w:
-        return None
-    t = terrain(s["lat"], s["lon"])
-    if t["slope_deg"] is None:
         return None
     phys = physics_assessment(t["slope_deg"], w["daily_rain_7d"], w["soil_0_28cm"])
     row = {k: v for k, v in s.items() if k != "day"}
@@ -141,21 +141,35 @@ def main():
     a = ap.parse_args()
 
     terrain = _terrain_fn()
-    events = load_events(a.events)
+    all_events = load_events(a.events)
+    events = [e for e in all_events if terrain(e["lat"], e["lon"]).get("slope_deg") is not None]
+    print(f"[EVENTS] {len(events)}/{len(all_events)} real events inside SRTM DEM coverage", flush=True)
+
     samples = make_samples(events, a.temporal, a.spatial, [float(x) for x in a.bbox.split(",")], a.seed, terrain)
     print(f"[SAMPLES] {sum(s['label'] for s in samples)} positives, "
-          f"{sum(1 - s['label'] for s in samples)} negatives")
+          f"{sum(1 - s['label'] for s in samples)} negatives", flush=True)
 
     cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
+    counter = 0
+    total = len(samples)
+
+    def do_enrich(s):
+        nonlocal counter
+        res = enrich(s, terrain, cache)
+        counter += 1
+        if counter % 25 == 0 or counter == total:
+            print(f"[PROGRESS] enriched {counter}/{total} samples...", flush=True)
+        return res
+
     with ThreadPoolExecutor(a.workers) as ex:
-        rows = list(ex.map(lambda s: enrich(s, terrain, cache), samples))
+        rows = list(ex.map(do_enrich, samples))
     json.dump(cache, open(CACHE, "w"))
     kept = [r for r in rows if r]
-    print(f"[ENRICH] kept {len(kept)}/{len(rows)} (dropped = missing weather/terrain; NOT imputed)")
+    print(f"[ENRICH] kept {len(kept)}/{len(rows)} (dropped = missing weather/terrain; NOT imputed)", flush=True)
     cols = list(kept[0].keys())
     with open(a.out, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=cols); w.writeheader(); w.writerows(kept)
-    print(f"[DONE] -> {a.out}")
+    print(f"[DONE] -> {a.out}", flush=True)
 
 
 if __name__ == "__main__":
